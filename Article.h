@@ -11,11 +11,17 @@ class Article {
 public:
     string content;
 public:
+
     Article(int producer, string type, int id) {
         content = "Producer: " + to_string(producer) + " Type: " + type + "  ID: " + to_string(id);
     }
     Article(char * s){
-        content = string(s);
+        if(s == nullptr)
+            content = "";
+        else content = string(s);
+    }
+    Article(string s){
+        content = s;
     }
 };
 

@@ -23,12 +23,14 @@ class Bounded_Buffer {
     pthread_mutex_t mtx;
     queue<Article> q;
 public:
+    bool isActive;
     virtual ~Bounded_Buffer() {
 
     }
 
 
     Bounded_Buffer(int size){
+        isActive = true;
         capacity = size;
         pthread_mutex_init(&mtx, NULL);
         sem_init(&empty, 0, size);
@@ -50,15 +52,15 @@ public:
         pthread_mutex_unlock(&mtx);
         sem_post(&full);
     }
-    char * remove() {
+    string remove() {
         sem_wait(&full);
         pthread_mutex_lock(&mtx);
         Article a = q.front();
         q.pop();
-        const char * s = a.content.c_str();
+        string s = a.content;
         pthread_mutex_unlock(&mtx);
         sem_post(&empty);
-        return const_cast<char *>(s);
+        return s;
     }
 
     int getId() const {
