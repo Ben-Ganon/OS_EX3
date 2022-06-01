@@ -6,6 +6,7 @@
 #define OS_EX3_PRODUCER_H
 #import <list>
 #import "Article.h"
+#include "Bounded_Buffer.h"
 #import <vector>
 #include <random>
 #include <iostream>
@@ -20,13 +21,15 @@ class Producer {
     vector<Article *> articles;
     int articleCounters[3] = {0, 0, 0};
     string articleTypes[3] = {"SPORTS", "NEWS", "WEATHER"};
+    Bounded_Buffer* q;
 
 public:
-    Producer(int id, int size, int articleNum) {
+    Producer(int id, int size, int articleNum, Bounded_Buffer* newQ) {
         this->id = id;
         this->Qsize = size;
         this->articleNum = articleNum;
         articles.reserve(articleNum);
+        q = newQ;
         srand((unsigned)time(0));
         for (int i = 0; i < articleNum; ++i) {
             articles.push_back(GenerateArticle(rand()%3));

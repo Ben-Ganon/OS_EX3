@@ -3,4 +3,4 @@ project(OS_EX3)
 
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(OS_EX3 main.cpp Bounded_Buffer.cpp Bounded_Buffer.h Article.cpp Article.h Producer.cpp Producer.h)
+add_executable(OS_EX3 main.cpp Bounded_Buffer.cpp Bounded_Buffer.h Article.cpp Article.h Producer.cpp Producer.h Dispatcher.cpp Dispatcher.h UnBounded_B.cpp UnBounded_B.h)
