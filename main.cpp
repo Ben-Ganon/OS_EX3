@@ -20,6 +20,8 @@ vector<Bounded_Buffer> ProducerQs = vector<Bounded_Buffer>();
 UnBounded_B Buff_Sports;
 UnBounded_B Buff_News;
 UnBounded_B Buff_Weather;
+vector<UnBounded_B> CoEditorQs{Buff_Sports, Buff_News, Buff_Weather};
+
 Bounded_Buffer* Co_Editor_Shared;
 
 string articleTypes[3] = {"SPORTS", "NEWS", "WEATHER"};
@@ -29,42 +31,74 @@ void DispatcherT(){
     while(!noProducerAlive){
         noProducerAlive = true;
         for (int i = 0; i < ProducerQs.size(); i++) {
-            Bounded_Buffer b = ProducerQs[i];
-            if(!b.isActive)
+            if(!ProducerQs[i].isActive)
                 continue;
-            string str = b.remove();
-            Article article(str);
-            if(article.content == "-1"){
-                b.isActive = false;
+            string str = ProducerQs[i].remove();
+            if(str== "-1"){
+                ProducerQs[i].isActive = false;
                 continue;
             }
             noProducerAlive = false;
-            if(article.content.find("SPORTS")){
-                cout << "Found sports article" << article.content << endl;
-            } else if(article.content.find("NEWS")) {
-                cout << "Found news article" << article.content << endl;
-            }else if(article.content.find("WEATHER")) {
-                cout << "Found weather article" << article.content << endl;
+            if(str.find("SPORTS")){
+                CoEditorQs[0].insert(str);
+            } else if(str.find("NEWS")) {
+                CoEditorQs[1].insert(str);
+            }else if(str.find("WEATHER")) {
+                CoEditorQs[2].insert(str);
             }
         }
-        if(noProducerAlive)
+        if(noProducerAlive){
+            string end = "-1";
+            CoEditorQs[0].insert(end);
+            CoEditorQs[1].insert(end);
+            CoEditorQs[2].insert(end);
             return;
+        }
+
     }
 
+}
+
+void CoEditorT(int type) {
+    while(true) {
+        string article = CoEditorQs[type].remove();
+        if(article == "-1"){
+            string end = "-1";
+            Co_Editor_Shared->insert(end);
+            return;
+        }
+        Co_Editor_Shared->insert(article);
+    }
+
+}
+
+void ScreenManagerT() {
+    int endCount = 0;
+    while(true) {
+        if(endCount == 3){
+            delete Co_Editor_Shared;
+            cout << "DONE" << endl;
+            return;
+        }
+        string article = Co_Editor_Shared->remove();
+        if(article == "-1"){
+            endCount++;
+            continue;
+        }
+
+        cout << article << endl;
+    }
 }
 
 void ProducerT(int id,  int qSize, int productNum) {
     srand((unsigned)time(0));
     for (int i = 0; i < productNum; ++i) {
-        /*Article a = p.Pop ();
-        if(a.content == "")
-            return;*/
         string type = articleTypes[rand()%3];
-        Article a(id, type, i);
-        ProducerQs.at(id).insert(a);
-        usleep(10000);
+        string article = "Producer " + to_string(id) + " TYPE: " + type + " ID: " + to_string(i);
+        ProducerQs.at(id).insert(article);
+        usleep(300000);
     }
-    Article end("-1");
+    string end = "-1";
     ProducerQs.at(id).insert(end);
 }
 
@@ -105,11 +139,14 @@ int main(int argc, char * argv[]) {
 
     for(int i = 0; i < producerData.size(); i++) {
         producerInfo b = producerData[i];
-        thread t(ProducerT, i, b.qSize, b.productNum);
+        thread t(ProducerT, b.id, b.qSize, b.productNum);
         producerThreads.push_back(move(t));
     }
     thread Dispatcht(DispatcherT);
-    
+    thread CoEditSport(CoEditorT, 0);
+    thread CoEditNews(CoEditorT, 1);
+    thread CoEditWeather(CoEditorT, 2);
+    thread ScreenT(ScreenManagerT);
 //    auto* p1 = new Producer(1, 5, 30);
 //    p1->ShowArticles();
 //    delete p1;
@@ -117,5 +154,9 @@ int main(int argc, char * argv[]) {
         producerThreads[j].join();
     }
     Dispatcht.join();
+    CoEditSport.join();
+    CoEditNews.join();
+    CoEditWeather.join();
+    ScreenT.join();
 return 0;
 }

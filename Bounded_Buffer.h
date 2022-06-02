@@ -21,7 +21,7 @@ class Bounded_Buffer {
     sem_t full;
     sem_t empty;
     pthread_mutex_t mtx;
-    queue<Article> q;
+    queue<string> q;
 public:
     bool isActive;
     virtual ~Bounded_Buffer() {
@@ -36,31 +36,29 @@ public:
         sem_init(&empty, 0, size);
         sem_init(&full, 0, 0);
     }
-    void insert(char * s) {
+    void insert(string s) {
         int val;
-        Article a = Article(s);
         sem_wait(&empty);
         pthread_mutex_lock(&mtx);
-        q.push(a);
+        q.push(s);
         pthread_mutex_unlock(&mtx);
         sem_post(&full);
     }
     void insert(Article a){
         sem_wait(&empty);
         pthread_mutex_lock(&mtx);
-        q.push(a);
+        q.push(a.content);
         pthread_mutex_unlock(&mtx);
         sem_post(&full);
     }
     string remove() {
         sem_wait(&full);
         pthread_mutex_lock(&mtx);
-        Article a = q.front();
+        string a = q.front();
         q.pop();
-        string s = a.content;
         pthread_mutex_unlock(&mtx);
         sem_post(&empty);
-        return s;
+        return a;
     }
 
     int getId() const {
@@ -103,13 +101,7 @@ public:
         Bounded_Buffer::mtx = mtx;
     }
 
-    const queue<Article> &getQ() const {
-        return q;
-    }
 
-    void setQ(const queue<Article> &q) {
-        Bounded_Buffer::q = q;
-    }
 
 };
 

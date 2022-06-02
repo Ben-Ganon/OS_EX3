@@ -21,7 +21,7 @@ class UnBounded_B {
     int id = 0;
     sem_t full;
     pthread_mutex_t mtx;
-    queue<Article> q;
+    queue<string> q;
 public:
     UnBounded_B(){
         pthread_mutex_init(&mtx, NULL);
@@ -31,24 +31,23 @@ public:
         int val;
         Article a = Article(s);
         pthread_mutex_lock(&mtx);
-        q.push(a);
+        q.push(s);
         pthread_mutex_unlock(&mtx);
         sem_post(&full);
     }
-    void insert(Article a){
+    void insert(string a){
         pthread_mutex_lock(&mtx);
         q.push(a);
         pthread_mutex_unlock(&mtx);
         sem_post(&full);
     }
-    char * remove() {
+    string remove() {
         sem_wait(&full);
         pthread_mutex_lock(&mtx);
-        Article a = q.front();
+        string a = q.front();
         q.pop();
-        const char * s = a.content.c_str();
         pthread_mutex_unlock(&mtx);
-        return const_cast<char *>(s);
+        return a;
     }
 
     int getId() const {
@@ -60,18 +59,9 @@ public:
     }
 
 
-    const sem_t &getFull() const {
-        return full;
-    }
 
 
-    const pthread_mutex_t &getMtx() const {
-        return mtx;
-    }
 
-    const queue<Article> &getQ() const {
-        return q;
-    }
 
 };
 
