@@ -91,10 +91,22 @@ void ScreenManagerT() {
 }
 
 void ProducerT(int id,  int qSize, int productNum) {
+    int sportCount, newsCount, weatherCount = 0;
+    int artId;
     srand((unsigned)time(0));
     for (int i = 0; i < productNum; ++i) {
         string type = articleTypes[rand()%3];
-        string article = "Producer " + to_string(id) + " TYPE: " + type + " ID: " + to_string(i);
+        if(type == "SPORT"){
+            artId = sportCount;
+            sportCount++;
+        } else if(type == "NEWS") {
+            artId = newsCount;
+            newsCount++;
+        }else if(type == "WEATHER") {
+            artId = weatherCount;
+            weatherCount++;
+        }
+        string article = "Producer " + to_string(id) + " TYPE: " + type + " ID: " + to_string(artId);
         ProducerQs.at(id).insert(article);
         usleep(300000);
     }
@@ -147,9 +159,7 @@ int main(int argc, char * argv[]) {
     thread CoEditNews(CoEditorT, 1);
     thread CoEditWeather(CoEditorT, 2);
     thread ScreenT(ScreenManagerT);
-//    auto* p1 = new Producer(1, 5, 30);
-//    p1->ShowArticles();
-//    delete p1;
+
     for (int j = 0; j < producerThreads.size(); ++j) {
         producerThreads[j].join();
     }
