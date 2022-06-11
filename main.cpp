@@ -8,6 +8,7 @@
 #include <iostream>
 #include<pthread.h>
 #include <queue>
+#include <unistd.h>
 
 using namespace std;
 
@@ -215,12 +216,12 @@ void ScreenManagerT() {
     }
 }
 
-void ProducerT(int id,  int qSize, int productNum) {
-    int sportCount, newsCount, weatherCount = 0;
-    int artId;
-    srand((unsigned)time(0));
+void ProducerT(int id,  int qSize, int productNum, int typeCount) {
+    int sportCount = 0, newsCount = 0, weatherCount = 0;
+    int artId =0;
     for (int i = 0; i < productNum; ++i) {
-        string type = articleTypes[rand()%3];
+        string type = articleTypes[typeCount%3];
+        typeCount++;
         if(type == "SPORT"){
             artId = sportCount;
             sportCount++;
@@ -231,12 +232,12 @@ void ProducerT(int id,  int qSize, int productNum) {
             artId = weatherCount;
             weatherCount++;
         }
-        string article = "Producer " + to_string(id) + " TYPE: " + type + " ID: " + to_string(artId);
-        ProducerQs.at(id).insert(article);
+        string article = "Producer " + to_string(id) + " " + type + " " + to_string(artId);
+        ProducerQs.at(id -1 ).insert(article);
         usleep(300000);
     }
     string end = "-1";
-    ProducerQs.at(id).insert(end);
+    ProducerQs.at(id -1).insert(end);
 }
 
 vector<producerInfo> readFile(char * dir){
@@ -255,7 +256,7 @@ vector<producerInfo> readFile(char * dir){
             coEditorQ = stoi(id);
             return prods;
         }else {
-            producerInfo p = producerInfo{stoi(id), stoi(numItems), stoi(qSize)};
+            producerInfo p = producerInfo{stoi(id) , stoi(numItems), stoi(qSize)};
             prods.push_back(p);
         }
         id.clear();
@@ -277,7 +278,7 @@ int main(int argc, char * argv[]) {
 
     for(int i = 0; i < producerData.size(); i++) {
         producerInfo b = producerData[i];
-        thread t(ProducerT, b.id, b.qSize, b.productNum);
+        thread t(ProducerT, b.id, b.qSize, b.productNum, i%3);
         producerThreads.push_back(move(t));
     }
     thread Dispatcht(DispatcherT);
